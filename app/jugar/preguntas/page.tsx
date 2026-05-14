@@ -10,9 +10,10 @@ import { useAutosaveDraft } from "@/lib/hooks";
 import { cn } from "@/lib/cn";
 
 function Preguntas() {
-  const { draft, patch, dirty } = useAutosaveDraft();
+  const { draft, patch, dirty, participant } = useAutosaveDraft();
   const [category, setCategory] = useState(questionCategories[0]);
-  const locked = Date.now() >= TOURNAMENT_START.getTime();
+  const locked =
+    Boolean(participant?.locked) || Date.now() >= TOURNAMENT_START.getTime();
 
   const setAnswer = (questionId: string, value: string) => {
     patch((prev) => ({
@@ -33,7 +34,7 @@ function Preguntas() {
 
       {locked && (
         <Card className="mb-4 bg-gold-300/30 p-3 text-sm font-semibold text-gold-600">
-          El Mundial ya ha empezado: las predicciones están bloqueadas.
+          Tus predicciones están bloqueadas: solo puedes consultarlas.
         </Card>
       )}
 

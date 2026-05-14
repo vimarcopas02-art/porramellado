@@ -66,19 +66,18 @@ export type ScorePrediction = {
   away: number | null;
 };
 
-/** Conjunto completo de predicciones de un participante, tal y como se guarda. */
+/**
+ * Conjunto completo de predicciones de un participante, tal y como se guarda.
+ * El orden de los grupos y los huecos de dieciseisavos NO se guardan: se
+ * calculan automáticamente a partir de `groupMatches`.
+ */
 export type Predictions = {
   /** Marcador previsto de cada partido de grupos. Clave = id de partido. */
   groupMatches: Record<string, ScorePrediction>;
-  /** Orden previsto de cada grupo. Clave = id de grupo, valor = ids de equipo 1º→4º. */
-  groupOrder: Record<string, string[]>;
-  /** Equipo asignado a cada hueco del cuadro final. Clave = id de hueco/cruce. */
+  /** Ganador previsto de cada cruce del cuadro final. Clave = `win:<idCruce>`. */
   bracket: Record<string, string>;
   /** Marcador previsto de los cruces de eliminatorias. Clave = id de cruce. */
   bracketScores: Record<string, ScorePrediction>;
   /** Respuesta a cada pregunta. Clave = id de pregunta. */
   questions: Record<string, string>;
 };
-
-/** Resultado real de un partido o cruce, introducido por el administrador. */
-export type RealResult = ScorePrediction;

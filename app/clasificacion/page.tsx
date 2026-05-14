@@ -21,7 +21,7 @@ export default function ClasificacionPage() {
       .map((p) => ({
         id: p.id,
         name: p.name,
-        score: computeScore(p.predictions, results),
+        score: computeScore(p, results),
       }))
       .sort(
         (a, b) =>

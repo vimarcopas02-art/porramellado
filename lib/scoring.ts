@@ -1,12 +1,8 @@
 import { bracket, matches, groups, questions } from "./data";
-import {
-  roundTeams,
-  tieParticipants,
-  normalizeBracket,
-  ALL_TIE_IDS,
-} from "./bracket";
-import type { Predictions, ScorePrediction } from "./types";
-import type { Results } from "./storage";
+import { roundTeams, tieParticipants, fullBracket, ALL_TIE_IDS } from "./bracket";
+import { computeGroupStanding, groupComplete } from "./standings";
+import type { ScorePrediction } from "./types";
+import type { Results, Participant } from "./storage";
 
 /**
  * Sistema de puntuación replicado del Excel "PorraMundial2026".
@@ -21,8 +17,8 @@ import type { Results } from "./storage";
  *   +5  dieciseisavos, +10 octavos, +15 cuartos, +20 semifinales,
  *   +25 partido por el 3er puesto, +30 final
  *   +25 acertar el tercer clasificado, +50 acertar el campeón
- * Eliminatorias — marcador exacto de un cruce: +5 (solo si se acertaron los 2 equipos del cruce)
- * Preguntas: la puntuación propia de cada pregunta.
+ * Eliminatorias — marcador exacto de un cruce: +5 (solo si se acertaron los 2 equipos)
+ * Preguntas: la puntuación propia de cada pregunta, corregida a mano por el admin.
  */
 
 export const POINTS = {
@@ -99,9 +95,10 @@ function sameTeams(a: string[], b: string[]): boolean {
 }
 
 export function computeScore(
-  predictions: Predictions,
+  participant: Participant,
   results: Results,
 ): ScoreBreakdown {
+  const predictions = participant.predictions;
   const b: ScoreBreakdown = {
     groupMatches: 0,
     groupOrder: 0,
@@ -120,7 +117,7 @@ export function computeScore(
     correctSigns: 0,
   };
 
-  // --- Fase de grupos ---
+  // --- Fase de grupos: marcador de cada partido ---
   for (const match of matches) {
     const r = scoreGroupMatch(
       predictions.groupMatches[match.id],
@@ -131,24 +128,32 @@ export function computeScore(
     if (r.correctSign) b.correctSigns += 1;
   }
 
-  // --- Orden de los grupos ---
+  // --- Orden de los grupos (calculado de los marcadores) ---
   for (const group of groups) {
-    const pred = predictions.groupOrder[group.id];
-    const real = results.groupOrder[group.id];
     if (
-      pred &&
-      real &&
-      pred.length === 4 &&
-      real.length === 4 &&
-      pred.every((id, i) => id === real[i])
+      !groupComplete(results.groupMatches, group.id) ||
+      !groupComplete(predictions.groupMatches, group.id)
     ) {
+      continue;
+    }
+    const predOrder = computeGroupStanding(
+      group.id,
+      predictions.groupMatches,
+    ).map((row) => row.teamId);
+    const realOrder = computeGroupStanding(group.id, results.groupMatches).map(
+      (row) => row.teamId,
+    );
+    if (predOrder.every((id, i) => id === realOrder[i])) {
       b.groupOrder += POINTS.ordenGrupo;
     }
   }
 
-  // --- Eliminatorias: equipos por ronda ---
-  const predBracket = normalizeBracket(predictions.bracket);
-  const realBracket = normalizeBracket(results.bracket);
+  // --- Cuadro final: equipos por ronda ---
+  const predBracket = fullBracket(
+    predictions.groupMatches,
+    predictions.bracket,
+  );
+  const realBracket = fullBracket(results.groupMatches, results.bracket);
   const predRounds = roundTeams(predBracket);
   const realRounds = roundTeams(realBracket);
   const countHits = (pred: Set<string>, real: Set<string>) => {
@@ -175,7 +180,7 @@ export function computeScore(
     b.thirdPlace = POINTS.thirdPlace;
   }
 
-  // --- Eliminatorias: marcador exacto de cada cruce ---
+  // --- Cuadro final: marcador exacto de cada cruce ---
   for (const tieId of ALL_TIE_IDS) {
     const ps = predictions.bracketScores[tieId];
     const rs = results.bracketScores[tieId];
@@ -191,11 +196,11 @@ export function computeScore(
     if (sameTeams(predPair, realPair)) b.knockoutExact += POINTS.knockoutExact;
   }
 
-  // --- Preguntas ---
+  // --- Preguntas (corregidas a mano por el administrador) ---
   for (const q of questions) {
-    const pred = (predictions.questions[q.id] ?? "").trim().toLowerCase();
-    const real = (results.questions[q.id] ?? "").trim().toLowerCase();
-    if (pred && real && pred === real) b.questions += q.points;
+    if (results.questionGrades[q.id]?.[participant.id]) {
+      b.questions += q.points;
+    }
   }
 
   b.total =

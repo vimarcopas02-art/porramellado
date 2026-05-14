@@ -1,12 +1,15 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Card, PageHeader, Button } from "@/components/ui";
+import { Card, PageHeader, Button, Badge } from "@/components/ui";
 import { MatchScoreRow } from "@/components/MatchScoreRow";
-import { GroupOrderEditor } from "@/components/GroupOrderEditor";
 import { BracketTieCard, type RoundKey } from "@/components/BracketTieCard";
-import { QuestionItem } from "@/components/QuestionItem";
-import { ShieldIcon, ShareIcon, WhatsAppIcon, CheckIcon } from "@/components/icons";
+import {
+  ShieldIcon,
+  ShareIcon,
+  WhatsAppIcon,
+  CheckIcon,
+} from "@/components/icons";
 import {
   groups,
   matchesOfGroup,
@@ -15,12 +18,12 @@ import {
   questions,
   questionCategories,
 } from "@/lib/data";
-import { normalizeBracket } from "@/lib/bracket";
+import { fullBracket, winnersOnly } from "@/lib/bracket";
 import { useResultsDraft, useParticipants, useMounted } from "@/lib/hooks";
 import { removeParticipant } from "@/lib/storage";
 import { computeScore } from "@/lib/scoring";
 import { ADMIN_CODE } from "@/lib/config";
-import type { Results } from "@/lib/storage";
+import type { Results, Participant } from "@/lib/storage";
 import type { ScorePrediction } from "@/lib/types";
 import { cn } from "@/lib/cn";
 
@@ -48,7 +51,7 @@ function ShareCard() {
         Pasa este enlace a tu grupo. Cada persona entra con su nombre y rellena
         su porra.
       </p>
-      <div className="mt-3 rounded-xl bg-ink-50 px-3 py-2.5 text-sm font-medium text-ink-700 break-all">
+      <div className="mt-3 break-all rounded-xl bg-ink-50 px-3 py-2.5 text-sm font-medium text-ink-700">
         {url || "…"}
       </div>
       <div className="mt-3 flex flex-col gap-2 sm:flex-row">
@@ -85,16 +88,10 @@ function ShareCard() {
 }
 
 /* -------------------------------------------------------------------------- */
-/*  Pestañas de resultados                                                     */
+/*  Resultados de grupos                                                       */
 /* -------------------------------------------------------------------------- */
 
-function GroupResultsTab({
-  draft,
-  patch,
-}: {
-  draft: Results;
-  patch: DraftPatch;
-}) {
+function GroupResultsTab({ draft, patch }: { draft: Results; patch: DraftPatch }) {
   const [groupId, setGroupId] = useState(groups[0].id);
   const setScore = (matchId: string, value: ScorePrediction) =>
     patch((prev) => ({
@@ -104,6 +101,10 @@ function GroupResultsTab({
 
   return (
     <div>
+      <p className="mb-3 text-sm text-ink-600">
+        Mete el marcador real de cada partido. La clasificación de grupos y los
+        equipos del cuadro final se recalculan solos.
+      </p>
       <div className="-mx-4 mb-4 overflow-x-auto px-4">
         <div className="flex gap-2">
           {groups.map((g) => (
@@ -143,38 +144,9 @@ function GroupResultsTab({
   );
 }
 
-function OrderResultsTab({
-  draft,
-  patch,
-}: {
-  draft: Results;
-  patch: DraftPatch;
-}) {
-  const setOrder = (groupId: string, order: string[]) =>
-    patch((prev) => ({
-      ...prev,
-      groupOrder: { ...prev.groupOrder, [groupId]: order },
-    }));
-
-  return (
-    <div className="grid gap-4 sm:grid-cols-2">
-      {groups.map((g) => {
-        const saved = draft.groupOrder[g.id];
-        const order =
-          saved && saved.length === 4 ? saved : g.teams;
-        return (
-          <GroupOrderEditor
-            key={g.id}
-            groupId={g.id}
-            order={order}
-            locked={false}
-            onReorder={(next) => setOrder(g.id, next)}
-          />
-        );
-      })}
-    </div>
-  );
-}
+/* -------------------------------------------------------------------------- */
+/*  Resultados del cuadro final                                                */
+/* -------------------------------------------------------------------------- */
 
 function BracketResultsTab({
   draft,
@@ -184,36 +156,34 @@ function BracketResultsTab({
   patch: DraftPatch;
 }) {
   const [tab, setTab] = useState<"r32" | "r16" | "qf" | "sf" | "final">("r32");
+  const record = fullBracket(draft.groupMatches, draft.bracket);
 
-  const updateBracket = (mutate: (rec: Record<string, string>) => void) =>
+  const onWinner = (tieId: string, teamId: string) => {
+    if (!teamId) return;
     patch((prev) => {
-      const rec = { ...prev.bracket };
-      mutate(rec);
-      return { ...prev, bracket: normalizeBracket(rec) };
-    });
-
-  const cardProps = {
-    bracketRecord: draft.bracket,
-    bracketScores: draft.bracketScores,
-    locked: false,
-    onSlot: (tieId: string, index: 0 | 1, teamId: string) =>
-      updateBracket((rec) => {
-        if (teamId) rec[`slot:${tieId}:${index}`] = teamId;
-        else delete rec[`slot:${tieId}:${index}`];
-      }),
-    onWinner: (tieId: string, teamId: string) =>
-      teamId &&
-      updateBracket((rec) => {
-        rec[`win:${tieId}`] = teamId;
-      }),
-    onScore: (tieId: string, score: ScorePrediction) =>
-      patch((prev) => ({
+      const winners = { ...prev.bracket, [`win:${tieId}`]: teamId };
+      return {
         ...prev,
-        bracketScores: { ...prev.bracketScores, [tieId]: score },
-      })),
+        bracket: winnersOnly(fullBracket(prev.groupMatches, winners)),
+      };
+    });
   };
 
-  const TABS = [
+  const onScore = (tieId: string, score: ScorePrediction) =>
+    patch((prev) => ({
+      ...prev,
+      bracketScores: { ...prev.bracketScores, [tieId]: score },
+    }));
+
+  const cardProps = {
+    bracketRecord: record,
+    bracketScores: draft.bracketScores,
+    locked: false,
+    onWinner,
+    onScore,
+  };
+
+  const ROUNDS = [
     { id: "r32", label: "16avos", ties: bracket.r32, round: "r32" },
     { id: "r16", label: "Octavos", ties: bracket.r16, round: "r16" },
     { id: "qf", label: "Cuartos", ties: bracket.qf, round: "qf" },
@@ -222,9 +192,13 @@ function BracketResultsTab({
 
   return (
     <div>
+      <p className="mb-3 text-sm text-ink-600">
+        Los equipos de dieciseisavos salen solos de los resultados de grupos.
+        Marca quién gana cada cruce real.
+      </p>
       <div className="-mx-4 mb-4 overflow-x-auto px-4">
         <div className="flex gap-2">
-          {[...TABS, { id: "final", label: "Final" }].map((t) => (
+          {[...ROUNDS, { id: "final", label: "Final" }].map((t) => (
             <button
               key={t.id}
               onClick={() => setTab(t.id as typeof tab)}
@@ -241,13 +215,13 @@ function BracketResultsTab({
         </div>
       </div>
 
-      {TABS.filter((t) => t.id === tab).map((t) => (
-        <div key={t.id} className="grid gap-3 sm:grid-cols-2">
-          {t.ties.map((tie) => (
+      {ROUNDS.filter((r) => r.id === tab).map((r) => (
+        <div key={r.id} className="grid gap-3 sm:grid-cols-2">
+          {r.ties.map((tie) => (
             <BracketTieCard
               key={tie.id}
               tie={tie}
-              round={t.round as RoundKey}
+              round={r.round as RoundKey}
               {...cardProps}
             />
           ))}
@@ -272,22 +246,46 @@ function BracketResultsTab({
   );
 }
 
-function QuestionsResultsTab({
+/* -------------------------------------------------------------------------- */
+/*  Repaso manual de preguntas                                                 */
+/* -------------------------------------------------------------------------- */
+
+function QuestionsReviewTab({
   draft,
   patch,
 }: {
   draft: Results;
   patch: DraftPatch;
 }) {
+  const participants = useParticipants();
   const [category, setCategory] = useState(questionCategories[0]);
-  const setAnswer = (questionId: string, value: string) =>
-    patch((prev) => ({
-      ...prev,
-      questions: { ...prev.questions, [questionId]: value },
-    }));
+
+  const toggle = (questionId: string, participantId: string) =>
+    patch((prev) => {
+      const forQuestion = { ...(prev.questionGrades[questionId] ?? {}) };
+      forQuestion[participantId] = !forQuestion[participantId];
+      return {
+        ...prev,
+        questionGrades: { ...prev.questionGrades, [questionId]: forQuestion },
+      };
+    });
+
+  if (participants.length === 0) {
+    return (
+      <Card className="p-6 text-center text-sm text-ink-500">
+        Todavía no se ha unido nadie a la porra.
+      </Card>
+    );
+  }
+
+  const visible = questions.filter((q) => q.category === category);
 
   return (
     <div>
+      <p className="mb-3 text-sm text-ink-600">
+        Marca con ✓ las respuestas correctas de cada participante. Esos puntos
+        se suman a su clasificación.
+      </p>
       <div className="-mx-4 mb-4 overflow-x-auto px-4">
         <div className="flex gap-2">
           {questionCategories.map((c) => (
@@ -306,24 +304,68 @@ function QuestionsResultsTab({
           ))}
         </div>
       </div>
-      <Card className="px-4">
-        <div className="divide-y divide-ink-100">
-          {questions
-            .filter((q) => q.category === category)
-            .map((q) => (
-              <QuestionItem
-                key={q.id}
-                question={q}
-                value={draft.questions[q.id] ?? ""}
-                locked={false}
-                onChange={(value) => setAnswer(q.id, value)}
-              />
-            ))}
-        </div>
-      </Card>
+
+      <div className="space-y-3">
+        {visible.map((q) => {
+          const grades = draft.questionGrades[q.id] ?? {};
+          return (
+            <Card key={q.id} className="p-4">
+              <div className="flex items-start justify-between gap-3">
+                <p className="text-sm font-semibold text-ink-800">{q.text}</p>
+                <Badge tone="gold" className="shrink-0">
+                  {q.points} pt{q.points === 1 ? "" : "s"}
+                </Badge>
+              </div>
+              <ul className="mt-3 divide-y divide-ink-100">
+                {participants.map((p) => {
+                  const answer = (p.predictions.questions[q.id] ?? "").trim();
+                  const correct = Boolean(grades[p.id]);
+                  return (
+                    <li
+                      key={p.id}
+                      className="flex items-center gap-3 py-2"
+                    >
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-sm font-semibold">
+                          {p.name}
+                        </p>
+                        <p
+                          className={cn(
+                            "truncate text-sm",
+                            answer ? "text-ink-600" : "text-ink-400",
+                          )}
+                        >
+                          {answer || "Sin responder"}
+                        </p>
+                      </div>
+                      <button
+                        onClick={() => toggle(q.id, p.id)}
+                        disabled={!answer}
+                        className={cn(
+                          "flex h-9 shrink-0 items-center gap-1.5 rounded-lg px-3 text-xs font-bold transition-colors disabled:opacity-40",
+                          correct
+                            ? "bg-pitch-600 text-white"
+                            : "bg-ink-100 text-ink-600 hover:bg-ink-200",
+                        )}
+                      >
+                        <CheckIcon className="h-4 w-4" />
+                        {correct ? "Correcto" : "Marcar"}
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
+            </Card>
+          );
+        })}
+      </div>
     </div>
   );
 }
+
+/* -------------------------------------------------------------------------- */
+/*  Participantes                                                              */
+/* -------------------------------------------------------------------------- */
 
 function ParticipantsTab({ draft }: { draft: Results }) {
   const participants = useParticipants();
@@ -339,11 +381,18 @@ function ParticipantsTab({ draft }: { draft: Results }) {
   return (
     <Card className="divide-y divide-ink-100">
       {participants.map((p) => {
-        const score = computeScore(p.predictions, draft);
+        const score = computeScore(p, draft);
         return (
           <div key={p.id} className="flex items-center gap-3 p-3">
-            <div className="flex-1">
-              <p className="font-semibold">{p.name}</p>
+            <div className="min-w-0 flex-1">
+              <p className="flex items-center gap-2 font-semibold">
+                <span className="truncate">{p.name}</span>
+                {p.locked && (
+                  <Badge tone="pitch" className="shrink-0">
+                    Guardada
+                  </Badge>
+                )}
+              </p>
               <p className="text-xs text-ink-500">
                 {score.total} puntos · actualizado{" "}
                 {new Date(p.updatedAt).toLocaleDateString("es-ES")}
@@ -355,7 +404,7 @@ function ParticipantsTab({ draft }: { draft: Results }) {
                   removeParticipant(p.id);
                 }
               }}
-              className="rounded-lg px-3 py-1.5 text-xs font-semibold text-red-600 hover:bg-red-50"
+              className="shrink-0 rounded-lg px-3 py-1.5 text-xs font-semibold text-red-600 hover:bg-red-50"
             >
               Eliminar
             </button>
@@ -372,7 +421,6 @@ function ParticipantsTab({ draft }: { draft: Results }) {
 
 const ADMIN_TABS = [
   { id: "grupos", label: "Resultados grupos" },
-  { id: "orden", label: "Orden grupos" },
   { id: "cuadro", label: "Cuadro final" },
   { id: "preguntas", label: "Preguntas" },
   { id: "participantes", label: "Participantes" },
@@ -380,8 +428,7 @@ const ADMIN_TABS = [
 
 function AdminPanel() {
   const { draft, patch, dirty } = useResultsDraft();
-  const [tab, setTab] =
-    useState<(typeof ADMIN_TABS)[number]["id"]>("grupos");
+  const [tab, setTab] = useState<(typeof ADMIN_TABS)[number]["id"]>("grupos");
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-8">
@@ -425,10 +472,9 @@ function AdminPanel() {
       </div>
 
       {tab === "grupos" && <GroupResultsTab draft={draft} patch={patch} />}
-      {tab === "orden" && <OrderResultsTab draft={draft} patch={patch} />}
       {tab === "cuadro" && <BracketResultsTab draft={draft} patch={patch} />}
       {tab === "preguntas" && (
-        <QuestionsResultsTab draft={draft} patch={patch} />
+        <QuestionsReviewTab draft={draft} patch={patch} />
       )}
       {tab === "participantes" && <ParticipantsTab draft={draft} />}
     </div>
@@ -446,9 +492,7 @@ function AdminGate() {
   }, []);
 
   if (!mounted) {
-    return (
-      <div className="px-4 py-20 text-center text-ink-400">Cargando…</div>
-    );
+    return <div className="px-4 py-20 text-center text-ink-400">Cargando…</div>;
   }
 
   if (unlocked) return <AdminPanel />;

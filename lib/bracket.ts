@@ -1,5 +1,6 @@
 import { bracket, teams } from "./data";
-import type { BracketTie } from "./types";
+import { autoBracketSlots } from "./standings";
+import type { BracketTie, ScorePrediction } from "./types";
 
 /** Todos los cruces del cuadro final, en orden de disputa. */
 export const ALL_TIES: BracketTie[] = [
@@ -78,6 +79,29 @@ export function normalizeBracket(
     if (winner && winner !== a && winner !== b) delete next[key];
   }
   return next;
+}
+
+/**
+ * Cuadro completo y coherente: combina los huecos de dieciseisavos calculados
+ * a partir de los marcadores de grupos con los ganadores elegidos (`win:*`),
+ * y descarta los ganadores que hayan quedado obsoletos.
+ */
+export function fullBracket(
+  groupScores: Record<string, ScorePrediction>,
+  winners: Record<string, string>,
+): Record<string, string> {
+  return normalizeBracket({ ...autoBracketSlots(groupScores), ...winners });
+}
+
+/** Conserva solo las claves de ganadores (`win:*`) de un cuadro. */
+export function winnersOnly(
+  record: Record<string, string>,
+): Record<string, string> {
+  const out: Record<string, string> = {};
+  for (const [key, value] of Object.entries(record)) {
+    if (key.startsWith("win:")) out[key] = value;
+  }
+  return out;
 }
 
 /** Equipos que el cuadro sitúa en cada ronda. */

@@ -16,9 +16,10 @@ import type { ScorePrediction } from "@/lib/types";
 import { cn } from "@/lib/cn";
 
 function Grupos() {
-  const { draft, patch, dirty } = useAutosaveDraft();
+  const { draft, patch, dirty, participant } = useAutosaveDraft();
   const [groupId, setGroupId] = useState(groups[0].id);
-  const locked = Date.now() >= TOURNAMENT_START.getTime();
+  const locked =
+    Boolean(participant?.locked) || Date.now() >= TOURNAMENT_START.getTime();
   const groupMatches = matchesOfGroup(groupId);
 
   const setScore = (matchId: string, value: ScorePrediction) => {
@@ -38,7 +39,7 @@ function Grupos() {
 
       {locked && (
         <Card className="mb-4 bg-gold-300/30 p-3 text-sm font-semibold text-gold-600">
-          El Mundial ya ha empezado: las predicciones están bloqueadas.
+          Tus predicciones están bloqueadas: solo puedes consultarlas.
         </Card>
       )}
 

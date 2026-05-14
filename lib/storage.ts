@@ -18,15 +18,24 @@ export type Participant = {
   name: string;
   predictions: Predictions;
   updatedAt: number;
+  /** Si la porra se ha guardado en firme: ya no se puede editar. */
+  locked: boolean;
+  lockedAt?: number;
 };
 
 /** Resultados reales que introduce el administrador. */
 export type Results = {
+  /** Marcador real de cada partido de grupos. Mueve la clasificación. */
   groupMatches: Record<string, ScorePrediction>;
-  groupOrder: Record<string, string[]>;
+  /** Ganador real de cada cruce del cuadro final. Clave = `win:<idCruce>`. */
   bracket: Record<string, string>;
+  /** Marcador real de los cruces de eliminatorias. */
   bracketScores: Record<string, ScorePrediction>;
-  questions: Record<string, string>;
+  /**
+   * Corrección manual de las preguntas: para cada pregunta, qué participantes
+   * la han acertado. Clave externa = id de pregunta, interna = id de participante.
+   */
+  questionGrades: Record<string, Record<string, boolean>>;
 };
 
 type Store = {
@@ -38,7 +47,6 @@ type Store = {
 export function emptyPredictions(): Predictions {
   return {
     groupMatches: {},
-    groupOrder: {},
     bracket: {},
     bracketScores: {},
     questions: {},
@@ -48,10 +56,9 @@ export function emptyPredictions(): Predictions {
 export function emptyResults(): Results {
   return {
     groupMatches: {},
-    groupOrder: {},
     bracket: {},
     bracketScores: {},
-    questions: {},
+    questionGrades: {},
   };
 }
 
@@ -129,6 +136,7 @@ export function signIn(name: string): Participant {
       name: clean,
       predictions: emptyPredictions(),
       updatedAt: Date.now(),
+      locked: false,
     };
     store.participants = [...store.participants, participant];
   }
@@ -146,8 +154,20 @@ export function savePredictions(predictions: Predictions) {
   const store = load();
   if (!store.currentId) return;
   const participants = store.participants.map((p) =>
-    p.id === store.currentId
+    p.id === store.currentId && !p.locked
       ? { ...p, predictions, updatedAt: Date.now() }
+      : p,
+  );
+  commit({ ...store, participants });
+}
+
+/** Guarda la porra en firme: queda bloqueada y ya no se puede editar. */
+export function lockPorra() {
+  const store = load();
+  if (!store.currentId) return;
+  const participants = store.participants.map((p) =>
+    p.id === store.currentId
+      ? { ...p, locked: true, lockedAt: Date.now() }
       : p,
   );
   commit({ ...store, participants });

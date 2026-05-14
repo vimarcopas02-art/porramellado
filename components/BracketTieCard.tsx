@@ -1,8 +1,8 @@
 "use client";
 
 import type { BracketTie, ScorePrediction } from "@/lib/types";
-import { tieParticipants, slotCandidates } from "@/lib/bracket";
-import { teamName, teams } from "@/lib/data";
+import { tieParticipants } from "@/lib/bracket";
+import { teamName } from "@/lib/data";
 import { Card } from "./ui";
 import { cn } from "@/lib/cn";
 
@@ -24,70 +24,29 @@ function tieDate(tie: BracketTie): string {
   });
 }
 
-/** Selector de equipo para un hueco de dieciseisavos. */
-function SlotSelect({
-  label,
-  value,
-  onChange,
-  disabled,
-}: {
-  label: string;
-  value: string;
-  onChange: (teamId: string) => void;
-  disabled?: boolean;
-}) {
-  const candidates = slotCandidates(label);
-  const options = candidates.length ? candidates : teams.map((t) => t.id);
-  return (
-    <div className="flex flex-1 items-center gap-2">
-      <span className="shrink-0 rounded-md bg-ink-100 px-1.5 py-0.5 text-xs font-bold text-ink-500">
-        {label}
-      </span>
-      <select
-        value={value}
-        disabled={disabled}
-        onChange={(e) => onChange(e.target.value)}
-        className={cn(
-          "h-9 flex-1 rounded-lg border border-ink-200 bg-white px-2 text-sm font-semibold outline-none focus:border-pitch-500 focus:ring-2 focus:ring-pitch-100 disabled:bg-ink-50 disabled:text-ink-400",
-          !value && "text-ink-400",
-        )}
-      >
-        <option value="">Elegir…</option>
-        {options.map((id) => (
-          <option key={id} value={id}>
-            {teamName(id)}
-          </option>
-        ))}
-      </select>
-    </div>
-  );
-}
-
 function TeamRow({
   team,
+  slotLabel,
   isWinner,
   canPick,
   onPickWinner,
-  children,
 }: {
   team: string;
+  slotLabel?: string;
   isWinner: boolean;
   canPick: boolean;
   onPickWinner: () => void;
-  children?: React.ReactNode;
 }) {
   return (
     <div
       className={cn(
         "flex items-center gap-2 rounded-xl border p-2 transition-colors",
-        isWinner
-          ? "border-pitch-400 bg-pitch-50"
-          : "border-ink-200 bg-white",
+        isWinner ? "border-pitch-400 bg-pitch-50" : "border-ink-200 bg-white",
       )}
     >
       <button
         type="button"
-        aria-label={isWinner ? "Ganador" : "Marcar como ganador"}
+        aria-label={isWinner ? "Ganador del cruce" : "Marcar como ganador"}
         aria-pressed={isWinner}
         disabled={!canPick}
         onClick={onPickWinner}
@@ -109,7 +68,19 @@ function TeamRow({
           />
         </svg>
       </button>
-      {children}
+      {slotLabel && (
+        <span className="shrink-0 rounded-md bg-ink-100 px-1.5 py-0.5 text-xs font-bold text-ink-500">
+          {slotLabel}
+        </span>
+      )}
+      <span
+        className={cn(
+          "flex-1 truncate text-sm font-semibold",
+          !team && "text-ink-400",
+        )}
+      >
+        {team ? teamName(team) : "Pendiente"}
+      </span>
     </div>
   );
 }
@@ -120,23 +91,21 @@ export function BracketTieCard({
   bracketRecord,
   bracketScores,
   locked,
-  onSlot,
   onWinner,
   onScore,
 }: {
   tie: BracketTie;
   round: RoundKey;
+  /** Cuadro completo: huecos automáticos + ganadores elegidos. */
   bracketRecord: Record<string, string>;
   bracketScores: Record<string, ScorePrediction>;
   locked: boolean;
-  onSlot: (tieId: string, index: 0 | 1, teamId: string) => void;
   onWinner: (tieId: string, teamId: string) => void;
   onScore: (tieId: string, score: ScorePrediction) => void;
 }) {
   const [teamA, teamB] = tieParticipants(bracketRecord, tie.id);
   const winner = bracketRecord[`win:${tie.id}`] || "";
   const score = bracketScores[tie.id] ?? { home: null, away: null };
-  const isR32 = round === "r32";
 
   return (
     <Card className="p-3">
@@ -145,39 +114,16 @@ export function BracketTieCard({
       </p>
 
       <div className="space-y-1.5">
-        {[teamA, teamB].map((team, index) => {
-          const slotLabel = tie.slots?.[index] ?? "";
-          const canPick = !locked && Boolean(team);
-          return (
-            <TeamRow
-              key={index}
-              team={team}
-              isWinner={Boolean(team) && winner === team}
-              canPick={canPick}
-              onPickWinner={() => onWinner(tie.id, team)}
-            >
-              {isR32 ? (
-                <SlotSelect
-                  label={slotLabel}
-                  value={team}
-                  disabled={locked}
-                  onChange={(teamId) =>
-                    onSlot(tie.id, index as 0 | 1, teamId)
-                  }
-                />
-              ) : (
-                <span
-                  className={cn(
-                    "flex-1 truncate text-sm font-semibold",
-                    !team && "text-ink-400",
-                  )}
-                >
-                  {team ? teamName(team) : "Pendiente"}
-                </span>
-              )}
-            </TeamRow>
-          );
-        })}
+        {[teamA, teamB].map((team, index) => (
+          <TeamRow
+            key={index}
+            team={team}
+            slotLabel={tie.slots?.[index]}
+            isWinner={Boolean(team) && winner === team}
+            canPick={!locked && Boolean(team)}
+            onPickWinner={() => onWinner(tie.id, team)}
+          />
+        ))}
       </div>
 
       {/* Marcador del cruce (90 min) — opcional, +5 puntos si es exacto */}
