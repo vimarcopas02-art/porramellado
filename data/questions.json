@@ -1,0 +1,310 @@
+[
+  {
+    "id": "q4",
+    "category": "Generales",
+    "text": "¿Qué selección marcará el primer gol del torneo?",
+    "points": 1,
+    "type": "team"
+  },
+  {
+    "id": "q5",
+    "category": "Generales",
+    "text": "¿De qué selección será el primer jugador amonestado con tarjeta amarilla del torneo?",
+    "points": 1,
+    "type": "team"
+  },
+  {
+    "id": "q6",
+    "category": "Generales",
+    "text": "¿De qué selección será el primer expulsado del torneo?",
+    "points": 1,
+    "type": "team"
+  },
+  {
+    "id": "q7",
+    "category": "Generales",
+    "text": "¿Qué selección lanzará el primer penalti del torneo?",
+    "points": 1,
+    "type": "team"
+  },
+  {
+    "id": "q8",
+    "category": "Generales",
+    "text": "En el partido Costa de Marfil -Ecuador, ¿habrá algún expulsado?",
+    "points": 1,
+    "type": "text"
+  },
+  {
+    "id": "q9",
+    "category": "Generales",
+    "text": "¿Ganará algún partido Cabo Verde?",
+    "points": 1,
+    "type": "boolean"
+  },
+  {
+    "id": "q10",
+    "category": "Generales",
+    "text": "¿Puntuará Uzbekistán?",
+    "points": 1,
+    "type": "boolean"
+  },
+  {
+    "id": "q11",
+    "category": "Generales",
+    "text": "¿Marcará Cristiano Ronaldo de falta directa?",
+    "points": 2,
+    "type": "boolean"
+  },
+  {
+    "id": "q12",
+    "category": "Generales",
+    "text": "¿Cuántos goles anotará Haaland en el torneo: ninguno, entre 1 y 3 ó más de 3?",
+    "points": 3,
+    "type": "text"
+  },
+  {
+    "id": "q13",
+    "category": "Generales",
+    "text": "En sus últimos partidos mundialistas, ¿marcará algún gol Luka Modric?",
+    "points": 3,
+    "type": "text"
+  },
+  {
+    "id": "q14",
+    "category": "Generales",
+    "text": "¿Qué selección llegará más lejos? ¿La Francia de Mbappe o la España de Lamine?",
+    "points": 5,
+    "type": "team"
+  },
+  {
+    "id": "q15",
+    "category": "Generales",
+    "text": "¿Qué jugador francés marcará más goles, Dembele, Olise o Mbappé?",
+    "points": 2,
+    "type": "text"
+  },
+  {
+    "id": "q16",
+    "category": "Generales",
+    "text": "¿Se producirá algún gol en propia meta en el torneo?",
+    "points": 2,
+    "type": "boolean"
+  },
+  {
+    "id": "q17",
+    "category": "Generales",
+    "text": "¿Logrará algún jugador un hat-trick?",
+    "points": 3,
+    "type": "boolean"
+  },
+  {
+    "id": "q18",
+    "category": "Generales",
+    "text": "¿Qué selección encajará más goles en la fase de grupos?",
+    "points": 4,
+    "type": "team"
+  },
+  {
+    "id": "q19",
+    "category": "Generales",
+    "text": "¿Qué selección encajará menos goles en la fase de grupos?",
+    "points": 4,
+    "type": "team"
+  },
+  {
+    "id": "q20",
+    "category": "Generales",
+    "text": "¿Qué selección meterá más goles en la fase de grupos?",
+    "points": 4,
+    "type": "team"
+  },
+  {
+    "id": "q21",
+    "category": "Generales",
+    "text": "¿Qué selección meterá menos goles en la fase de grupos?",
+    "points": 4,
+    "type": "team"
+  },
+  {
+    "id": "q23",
+    "category": "España",
+    "text": "¿Quién marcará el primer gol de España del torneo?",
+    "points": 5,
+    "type": "text"
+  },
+  {
+    "id": "q24",
+    "category": "España",
+    "text": "¿Qué selección le marcará el primer gol a España en la fase de grupos? Cabo Verde (16Jun), Arabia Saudí (21Jun), Uruguay (27Jun)",
+    "points": 3,
+    "type": "team"
+  },
+  {
+    "id": "q25",
+    "category": "España",
+    "text": "¿Qué club tendrá el mayor número de jugadores de España en el 11 titular de su primer partido ante Cabo Verde?",
+    "points": 2,
+    "type": "text"
+  },
+  {
+    "id": "q26",
+    "category": "España",
+    "text": "¿A qué jugador español le sacarán la primera tarjeta amarilla?",
+    "points": 2,
+    "type": "text"
+  },
+  {
+    "id": "q27",
+    "category": "España",
+    "text": "¿A qué jugador español le sacarán la primera tarjeta roja?",
+    "points": 2,
+    "type": "text"
+  },
+  {
+    "id": "q28",
+    "category": "España",
+    "text": "¿Jugará algún minuto David Raya?",
+    "points": 2,
+    "type": "boolean"
+  },
+  {
+    "id": "q29",
+    "category": "España",
+    "text": "En el partido España - Cabo Verde ¿Marcarán los dos equipos, sólo España, sólo Cabo Verde o ninguno de los dos?",
+    "points": 2,
+    "type": "text"
+  },
+  {
+    "id": "q30",
+    "category": "España",
+    "text": "¿En el partido España - Uruguay ¿Cuántas amarillas habrá: 0-1, 2-3 o más de 3?",
+    "points": 2,
+    "type": "text"
+  },
+  {
+    "id": "q31",
+    "category": "España",
+    "text": "¿Marcará España algún gol de cabeza a lo largo del torneo?",
+    "points": 1,
+    "type": "boolean"
+  },
+  {
+    "id": "q32",
+    "category": "España",
+    "text": "¿Conseguirá España los 9 puntos de la fase de grupos?",
+    "points": 2,
+    "type": "boolean"
+  },
+  {
+    "id": "q33",
+    "category": "España",
+    "text": "¿Cuántos goles marcará España en la 1ª Fase: Menos de 4, entre 4 y 6, ó más de 6?",
+    "points": 2,
+    "type": "text"
+  },
+  {
+    "id": "q34",
+    "category": "España",
+    "text": "¿Cuántos goles encajará España en la Primer Fase: 0-1, 2-3, ó más de 3?",
+    "points": 2,
+    "type": "text"
+  },
+  {
+    "id": "q35",
+    "category": "España",
+    "text": "¿Jugará España alguna tanda de penaltis?",
+    "points": 2,
+    "type": "boolean"
+  },
+  {
+    "id": "q36",
+    "category": "España",
+    "text": "¿Pasará España de Cuartos de Final?",
+    "points": 2,
+    "type": "boolean"
+  },
+  {
+    "id": "q37",
+    "category": "España",
+    "text": "¿Marcará algún gol Borja Iglesias?",
+    "points": 2,
+    "type": "boolean"
+  },
+  {
+    "id": "q38",
+    "category": "España",
+    "text": "¿Marcará algún gol Fermín?",
+    "points": 2,
+    "type": "boolean"
+  },
+  {
+    "id": "q39",
+    "category": "España",
+    "text": "¿Parará Unai Simón algún penalti a lo largo de todo el torneo?",
+    "points": 2,
+    "type": "boolean"
+  },
+  {
+    "id": "q40",
+    "category": "España",
+    "text": "¿Quién será el pichichi español?",
+    "points": 5,
+    "type": "text"
+  },
+  {
+    "id": "q42",
+    "category": "Fase Final",
+    "text": "En dieciseisavos de final ¿se decidirá algún partido por penaltis?",
+    "points": 3,
+    "type": "text"
+  },
+  {
+    "id": "q43",
+    "category": "Fase Final",
+    "text": "En octavos de final ¿cuántos partidos irán a la prórroga?",
+    "points": 7,
+    "type": "text"
+  },
+  {
+    "id": "q44",
+    "category": "Fase Final",
+    "text": "En cuartos de final ¿cuántas tandas de penaltis habrá?",
+    "points": 10,
+    "type": "text"
+  },
+  {
+    "id": "q45",
+    "category": "Fase Final",
+    "text": "En los 90 minutos de la final, ¿Cuántos goles se marcarán: 0, 1, 2, 3, 4 ó más de 4? (sin contar posible prórroga)",
+    "points": 10,
+    "type": "text"
+  },
+  {
+    "id": "q46",
+    "category": "Fase Final",
+    "text": "¿Qué selección marcará el último gol del torneo? (No cuenta la tanda de penaltis; sí la posible prórroga)",
+    "points": 15,
+    "type": "team"
+  },
+  {
+    "id": "q47",
+    "category": "Fase Final",
+    "text": "¿Qué selección tendrá el mayor número de jugadores en el 11 ideal del torneo ? (Según la FIFA)",
+    "points": 10,
+    "type": "team"
+  },
+  {
+    "id": "q48",
+    "category": "Fase Final",
+    "text": "¿Quién será el máximo goleador del campeonato?",
+    "points": 15,
+    "type": "text"
+  },
+  {
+    "id": "q49",
+    "category": "Fase Final",
+    "text": "¿Quién será el mejor jugador de la final? (MVP, según la FIFA)",
+    "points": 20,
+    "type": "text"
+  }
+]

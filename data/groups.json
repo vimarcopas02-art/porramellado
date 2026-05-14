@@ -1,0 +1,122 @@
+[
+  {
+    "id": "A",
+    "name": "Grupo A",
+    "teams": [
+      "mexico",
+      "sudafrica",
+      "corea-del-sur",
+      "republica-checa"
+    ]
+  },
+  {
+    "id": "B",
+    "name": "Grupo B",
+    "teams": [
+      "canada",
+      "qatar",
+      "suiza",
+      "bosnia-y-herzegovina"
+    ]
+  },
+  {
+    "id": "C",
+    "name": "Grupo C",
+    "teams": [
+      "brasil",
+      "marruecos",
+      "haiti",
+      "escocia"
+    ]
+  },
+  {
+    "id": "D",
+    "name": "Grupo D",
+    "teams": [
+      "ee-uu",
+      "paraguay",
+      "australia",
+      "turquia"
+    ]
+  },
+  {
+    "id": "E",
+    "name": "Grupo E",
+    "teams": [
+      "alemania",
+      "curazao",
+      "costa-de-marfil",
+      "ecuador"
+    ]
+  },
+  {
+    "id": "F",
+    "name": "Grupo F",
+    "teams": [
+      "paises-bajos",
+      "japon",
+      "tunez",
+      "suecia"
+    ]
+  },
+  {
+    "id": "G",
+    "name": "Grupo G",
+    "teams": [
+      "belgica",
+      "egipto",
+      "iran",
+      "nueva-zelanda"
+    ]
+  },
+  {
+    "id": "H",
+    "name": "Grupo H",
+    "teams": [
+      "espana",
+      "cabo-verde",
+      "arabia-saudi",
+      "uruguay"
+    ]
+  },
+  {
+    "id": "I",
+    "name": "Grupo I",
+    "teams": [
+      "francia",
+      "senegal",
+      "irak",
+      "noruega"
+    ]
+  },
+  {
+    "id": "J",
+    "name": "Grupo J",
+    "teams": [
+      "argentina",
+      "argelia",
+      "austria",
+      "jordania"
+    ]
+  },
+  {
+    "id": "K",
+    "name": "Grupo K",
+    "teams": [
+      "portugal",
+      "rd-congo",
+      "uzbekistan",
+      "colombia"
+    ]
+  },
+  {
+    "id": "L",
+    "name": "Grupo L",
+    "teams": [
+      "inglaterra",
+      "croacia",
+      "ghana",
+      "panama"
+    ]
+  }
+]

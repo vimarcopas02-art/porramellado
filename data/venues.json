@@ -1,0 +1,130 @@
+[
+  {
+    "id": "mexico-city-stadium",
+    "stadium": "Estadio Azteca",
+    "officialName": "Mexico City Stadium",
+    "city": "Ciudad de México",
+    "country": "México",
+    "capacity": 72766
+  },
+  {
+    "id": "guadalajara-stadium",
+    "stadium": "Estadio Akron",
+    "officialName": "Guadalajara Stadium",
+    "city": "Zapopan",
+    "country": "México",
+    "capacity": 44330
+  },
+  {
+    "id": "monterrey-stadium",
+    "stadium": "Estadio BBVA",
+    "officialName": "Monterrey Stadium",
+    "city": "Monterrey",
+    "country": "México",
+    "capacity": 50113
+  },
+  {
+    "id": "toronto-stadium",
+    "stadium": "BMO Field",
+    "officialName": "Toronto Stadium",
+    "city": "Toronto",
+    "country": "Canadá",
+    "capacity": 44315
+  },
+  {
+    "id": "bc-place-vancouver",
+    "stadium": "BC Place",
+    "officialName": "BC Place Vancouver",
+    "city": "Vancouver",
+    "country": "Canadá",
+    "capacity": 48821
+  },
+  {
+    "id": "atlanta-stadium",
+    "stadium": "Mercedes-Benz Stadium",
+    "officialName": "Atlanta Stadium",
+    "city": "Atlanta",
+    "country": "Estados Unidos",
+    "capacity": 67382
+  },
+  {
+    "id": "boston-stadium",
+    "stadium": "Gillette Stadium",
+    "officialName": "Boston Stadium",
+    "city": "Foxborough",
+    "country": "Estados Unidos",
+    "capacity": 63815
+  },
+  {
+    "id": "dallas-stadium",
+    "stadium": "AT&T Stadium",
+    "officialName": "Dallas Stadium",
+    "city": "Arlington",
+    "country": "Estados Unidos",
+    "capacity": 70122
+  },
+  {
+    "id": "houston-stadium",
+    "stadium": "NRG Stadium",
+    "officialName": "Houston Stadium",
+    "city": "Houston",
+    "country": "Estados Unidos",
+    "capacity": 68311
+  },
+  {
+    "id": "kansas-city-stadium",
+    "stadium": "Arrowhead Stadium",
+    "officialName": "Kansas City Stadium",
+    "city": "Kansas City",
+    "country": "Estados Unidos",
+    "capacity": 67513
+  },
+  {
+    "id": "los-angeles-stadium",
+    "stadium": "SoFi Stadium",
+    "officialName": "Los Angeles Stadium",
+    "city": "Inglewood",
+    "country": "Estados Unidos",
+    "capacity": 69650
+  },
+  {
+    "id": "miami-stadium",
+    "stadium": "Hard Rock Stadium",
+    "officialName": "Miami Stadium",
+    "city": "Miami Gardens",
+    "country": "Estados Unidos",
+    "capacity": 64091
+  },
+  {
+    "id": "new-york-new-jersey-stadium",
+    "stadium": "MetLife Stadium",
+    "officialName": "New York New Jersey Stadium",
+    "city": "East Rutherford",
+    "country": "Estados Unidos",
+    "capacity": 78576
+  },
+  {
+    "id": "philadelphia-stadium",
+    "stadium": "Lincoln Financial Field",
+    "officialName": "Philadelphia Stadium",
+    "city": "Philadelphia",
+    "country": "Estados Unidos",
+    "capacity": 65827
+  },
+  {
+    "id": "san-francisco-bay-area-stadium",
+    "stadium": "Levi’s Stadium",
+    "officialName": "San Francisco Bay Area Stadium",
+    "city": "Santa Clara",
+    "country": "Estados Unidos",
+    "capacity": 69391
+  },
+  {
+    "id": "seattle-stadium",
+    "stadium": "Lumen Field",
+    "officialName": "Seattle Stadium",
+    "city": "Seattle",
+    "country": "Estados Unidos",
+    "capacity": 65123
+  }
+]

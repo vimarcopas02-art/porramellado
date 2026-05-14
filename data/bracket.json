@@ -1,0 +1,298 @@
+{
+  "r32": [
+    {
+      "id": "D1",
+      "slots": [
+        "1ºE",
+        "3ºABCDF"
+      ],
+      "date": "2026-06-29",
+      "city": "Boston"
+    },
+    {
+      "id": "D2",
+      "slots": [
+        "1ºI",
+        "3ºCDFGH"
+      ],
+      "date": "2026-06-30",
+      "city": "Nueva York"
+    },
+    {
+      "id": "D3",
+      "slots": [
+        "2ºA",
+        "2ºB"
+      ],
+      "date": "2026-06-28",
+      "city": "Los Ángeles"
+    },
+    {
+      "id": "D4",
+      "slots": [
+        "1ºF",
+        "2ºC"
+      ],
+      "date": "2026-06-29",
+      "city": "Monterrey"
+    },
+    {
+      "id": "D5",
+      "slots": [
+        "2ºK",
+        "2ºL"
+      ],
+      "date": "2026-07-02",
+      "city": "Toronto"
+    },
+    {
+      "id": "D6",
+      "slots": [
+        "1ºH",
+        "2ºJ"
+      ],
+      "date": "2026-07-02",
+      "city": "Los Ángeles"
+    },
+    {
+      "id": "D7",
+      "slots": [
+        "1ºD",
+        "3ºBEFIJ"
+      ],
+      "date": "2026-07-01",
+      "city": "San Francisco"
+    },
+    {
+      "id": "D8",
+      "slots": [
+        "1ºG",
+        "3ºAEHIJ"
+      ],
+      "date": "2026-07-01",
+      "city": "Seattle"
+    },
+    {
+      "id": "D9",
+      "slots": [
+        "1ºC",
+        "2ºF"
+      ],
+      "date": "2026-06-29",
+      "city": "Houston"
+    },
+    {
+      "id": "D10",
+      "slots": [
+        "2ºE",
+        "2ºI"
+      ],
+      "date": "2026-06-30",
+      "city": "Dallas"
+    },
+    {
+      "id": "D11",
+      "slots": [
+        "1ºA",
+        "3ºCEFHI"
+      ],
+      "date": "2026-06-30",
+      "city": "Ciudad de México"
+    },
+    {
+      "id": "D12",
+      "slots": [
+        "1ºL",
+        "3ºEHIJK"
+      ],
+      "date": "2026-07-01",
+      "city": "Atlanta"
+    },
+    {
+      "id": "D13",
+      "slots": [
+        "1ºJ",
+        "2ºH"
+      ],
+      "date": "2026-07-03",
+      "city": "Miami"
+    },
+    {
+      "id": "D14",
+      "slots": [
+        "2ºD",
+        "2ºG"
+      ],
+      "date": "2026-07-03",
+      "city": "Dallas"
+    },
+    {
+      "id": "D15",
+      "slots": [
+        "1ºB",
+        "3ºEFGIJ"
+      ],
+      "date": "2026-07-02",
+      "city": "Vancouver"
+    },
+    {
+      "id": "D16",
+      "slots": [
+        "1ºK",
+        "3ºDEIJL"
+      ],
+      "date": "2026-07-03",
+      "city": "Kansas City"
+    }
+  ],
+  "r16": [
+    {
+      "id": "O1",
+      "from": [
+        "D1",
+        "D2"
+      ],
+      "date": "2026-07-04",
+      "city": "Philadelphia"
+    },
+    {
+      "id": "O2",
+      "from": [
+        "D3",
+        "D4"
+      ],
+      "date": "2026-07-04",
+      "city": "Houston"
+    },
+    {
+      "id": "O3",
+      "from": [
+        "D5",
+        "D6"
+      ],
+      "date": "2026-07-06",
+      "city": "Dallas"
+    },
+    {
+      "id": "O4",
+      "from": [
+        "D7",
+        "D8"
+      ],
+      "date": "2026-07-06",
+      "city": "Seattle"
+    },
+    {
+      "id": "O5",
+      "from": [
+        "D9",
+        "D10"
+      ],
+      "date": "2026-07-05",
+      "city": "Nueva York"
+    },
+    {
+      "id": "O6",
+      "from": [
+        "D11",
+        "D12"
+      ],
+      "date": "2026-07-05",
+      "city": "Ciudad de México"
+    },
+    {
+      "id": "O7",
+      "from": [
+        "D13",
+        "D14"
+      ],
+      "date": "2026-07-07",
+      "city": "Atlanta"
+    },
+    {
+      "id": "O8",
+      "from": [
+        "D15",
+        "D16"
+      ],
+      "date": "2026-07-07",
+      "city": "Vancouver"
+    }
+  ],
+  "qf": [
+    {
+      "id": "Q1",
+      "from": [
+        "O1",
+        "O2"
+      ],
+      "date": "2026-07-09",
+      "city": "Boston"
+    },
+    {
+      "id": "Q2",
+      "from": [
+        "O3",
+        "O4"
+      ],
+      "date": "2026-07-10",
+      "city": "Los Ángeles"
+    },
+    {
+      "id": "Q3",
+      "from": [
+        "O5",
+        "O6"
+      ],
+      "date": "2026-07-11",
+      "city": "Miami"
+    },
+    {
+      "id": "Q4",
+      "from": [
+        "O7",
+        "O8"
+      ],
+      "date": "2026-07-11",
+      "city": "Kansas City"
+    }
+  ],
+  "sf": [
+    {
+      "id": "S1",
+      "from": [
+        "Q1",
+        "Q2"
+      ],
+      "date": "2026-07-14",
+      "city": "Dallas"
+    },
+    {
+      "id": "S2",
+      "from": [
+        "Q3",
+        "Q4"
+      ],
+      "date": "2026-07-15",
+      "city": "Atlanta"
+    }
+  ],
+  "third": {
+    "id": "T1",
+    "from": [
+      "S1",
+      "S2"
+    ],
+    "date": "2026-07-18",
+    "city": "Miami"
+  },
+  "final": {
+    "id": "F1",
+    "from": [
+      "S1",
+      "S2"
+    ],
+    "date": "2026-07-19",
+    "city": "Nueva York"
+  }
+}
