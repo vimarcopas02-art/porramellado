@@ -73,7 +73,7 @@ function Preguntas() {
       </Card>
 
       <p className="mt-4 text-center text-xs text-ink-400">
-        Tus respuestas se guardan automáticamente en este dispositivo.
+        Tus respuestas se guardan automáticamente.
       </p>
     </div>
   );

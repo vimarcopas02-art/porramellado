@@ -4,6 +4,7 @@ import "./globals.css";
 import { Header } from "@/components/Header";
 import { BottomNav } from "@/components/BottomNav";
 import { Footer } from "@/components/Footer";
+import { StoreStatus } from "@/components/StoreStatus";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -25,6 +26,7 @@ export default function RootLayout({
     <html lang="es" className={`${geistSans.variable} h-full antialiased`}>
       <body className="flex min-h-full flex-col bg-ink-50 font-sans text-ink-900">
         <Header />
+        <StoreStatus />
         <main className="flex-1 pb-20 sm:pb-0">{children}</main>
         <Footer />
         <BottomNav />

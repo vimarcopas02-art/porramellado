@@ -83,7 +83,7 @@ function Grupos() {
       </Card>
 
       <p className="mt-4 text-center text-xs text-ink-400">
-        Tus cambios se guardan automáticamente en este dispositivo.
+        Tus cambios se guardan automáticamente.
       </p>
     </div>
   );

@@ -4,7 +4,13 @@ import { useMemo } from "react";
 import Link from "next/link";
 import { Card, PageHeader, ButtonLink } from "@/components/ui";
 import { TrophyIcon, BallIcon } from "@/components/icons";
-import { useParticipants, useResults, useParticipant, useMounted } from "@/lib/hooks";
+import {
+  useParticipants,
+  useResults,
+  useParticipant,
+  useMounted,
+  useStoreLoaded,
+} from "@/lib/hooks";
 import { computeScore } from "@/lib/scoring";
 import { cn } from "@/lib/cn";
 
@@ -12,6 +18,7 @@ const MEDAL = ["bg-gold-400 text-ink-900", "bg-ink-300 text-ink-900", "bg-gold-6
 
 export default function ClasificacionPage() {
   const mounted = useMounted();
+  const loaded = useStoreLoaded();
   const participants = useParticipants();
   const results = useResults();
   const current = useParticipant();
@@ -39,7 +46,7 @@ export default function ClasificacionPage() {
         description="El ranking se actualiza automáticamente a medida que se introducen los resultados de los partidos."
       />
 
-      {!mounted ? (
+      {!mounted || !loaded ? (
         <p className="py-10 text-center text-ink-400">Cargando…</p>
       ) : rows.length === 0 ? (
         <Card className="p-8 text-center">
@@ -120,9 +127,8 @@ export default function ClasificacionPage() {
           </div>
 
           <p className="mt-3 text-center text-xs text-ink-400">
-            Los participantes y resultados se guardan en este dispositivo. Para
-            una clasificación compartida entre varios móviles conectaremos una
-            base de datos (Supabase).
+            La clasificación es compartida y se actualiza en vivo para toda la
+            peña.
           </p>
         </>
       )}

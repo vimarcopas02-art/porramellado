@@ -1,56 +1,44 @@
 "use client";
 
+import { supabase } from "./supabase";
 import type { Predictions, ScorePrediction } from "./types";
 
 /**
- * Capa de persistencia. En esta versión usa localStorage del navegador.
- * Está aislada a propósito: cuando conectemos Supabase solo cambia este archivo.
+ * Capa de persistencia con Supabase.
  *
- * Mantiene una copia en memoria (cache) para que los snapshots sean estables
- * y se puedan usar con useSyncExternalStore sin provocar renders en bucle.
+ * Mantiene una copia en memoria (cache) que se rellena al cargar y se mantiene
+ * al día con realtime, para poder ofrecer snapshots síncronos a
+ * useSyncExternalStore. Las mutaciones son optimistas: actualizan la cache al
+ * instante y escriben en Supabase en segundo plano.
+ *
+ * Identidad "solo con nombre": cada dispositivo guarda en localStorage el id y
+ * un secreto de su participante; el secreto se exige para editar, así desde la
+ * app cada uno solo puede modificar su propia porra.
  */
 
-const KEY = "porra-mundial-2026";
 export const STORE_EVENT = "porra-updated";
+const DEVICE_KEY = "porra-mundial-2026:device";
 
 export type Participant = {
   id: string;
   name: string;
   predictions: Predictions;
   updatedAt: number;
-  /** Si la porra se ha guardado en firme: ya no se puede editar. */
   locked: boolean;
   lockedAt?: number;
 };
 
-/** Resultados reales que introduce el administrador. */
 export type Results = {
-  /** Marcador real de cada partido de grupos. Mueve la clasificación. */
   groupMatches: Record<string, ScorePrediction>;
-  /** Ganador real de cada cruce del cuadro final. Clave = `win:<idCruce>`. */
   bracket: Record<string, string>;
-  /** Marcador real de los cruces de eliminatorias. */
   bracketScores: Record<string, ScorePrediction>;
-  /**
-   * Corrección manual de las preguntas: para cada pregunta, qué participantes
-   * la han acertado. Clave externa = id de pregunta, interna = id de participante.
-   */
   questionGrades: Record<string, Record<string, boolean>>;
 };
 
-type Store = {
-  currentId: string | null;
-  participants: Participant[];
-  results: Results;
-};
+type Device = { id: string; secret: string };
 
 export function emptyPredictions(): Predictions {
-  return {
-    groupMatches: {},
-    bracket: {},
-    bracketScores: {},
-    questions: {},
-  };
+  return { groupMatches: {}, bracket: {}, bracketScores: {}, questions: {} };
 }
 
 export function emptyResults(): Results {
@@ -62,127 +50,285 @@ export function emptyResults(): Results {
   };
 }
 
-function emptyStore(): Store {
-  return { currentId: null, participants: [], results: emptyResults() };
-}
+// --- Cache en memoria ---
 
-let cache: Store | null = null;
+let participants: Participant[] = [];
+let results: Results = emptyResults();
+let loaded = false;
+let storeError: string | null = null;
+let initStarted = false;
 
-function load(): Store {
-  if (cache) return cache;
-  if (typeof window === "undefined") return emptyStore();
-  try {
-    const raw = window.localStorage.getItem(KEY);
-    if (!raw) {
-      cache = emptyStore();
-    } else {
-      const parsed = JSON.parse(raw) as Store;
-      cache = {
-        currentId: parsed.currentId ?? null,
-        participants: parsed.participants ?? [],
-        results: { ...emptyResults(), ...parsed.results },
-      };
-    }
-  } catch {
-    cache = emptyStore();
+function notify() {
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(new Event(STORE_EVENT));
   }
-  return cache;
 }
 
-function commit(store: Store) {
-  cache = store;
+// --- Conversión fila de Supabase <-> tipos de la app ---
+
+type ParticipantRow = {
+  id: string;
+  name: string;
+  predictions: Predictions;
+  locked: boolean;
+  locked_at: string | null;
+  updated_at: string;
+};
+
+function rowToParticipant(row: ParticipantRow): Participant {
+  return {
+    id: row.id,
+    name: row.name,
+    predictions: { ...emptyPredictions(), ...row.predictions },
+    locked: Boolean(row.locked),
+    lockedAt: row.locked_at ? new Date(row.locked_at).getTime() : undefined,
+    updatedAt: new Date(row.updated_at).getTime(),
+  };
+}
+
+type ResultsRow = {
+  group_matches: Results["groupMatches"];
+  bracket: Results["bracket"];
+  bracket_scores: Results["bracketScores"];
+  question_grades: Results["questionGrades"];
+};
+
+function rowToResults(row: ResultsRow): Results {
+  return {
+    groupMatches: row.group_matches ?? {},
+    bracket: row.bracket ?? {},
+    bracketScores: row.bracket_scores ?? {},
+    questionGrades: row.question_grades ?? {},
+  };
+}
+
+// --- Identidad del dispositivo ---
+
+function getDevice(): Device | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = window.localStorage.getItem(DEVICE_KEY);
+    return raw ? (JSON.parse(raw) as Device) : null;
+  } catch {
+    return null;
+  }
+}
+
+function setDevice(device: Device | null) {
   if (typeof window === "undefined") return;
-  window.localStorage.setItem(KEY, JSON.stringify(store));
-  window.dispatchEvent(new Event(STORE_EVENT));
+  if (device) {
+    window.localStorage.setItem(DEVICE_KEY, JSON.stringify(device));
+  } else {
+    window.localStorage.removeItem(DEVICE_KEY);
+  }
 }
 
-/** Invalida la cache (p. ej. al recibir cambios de otra pestaña). */
-export function invalidateCache() {
-  cache = null;
+function randomSecret(): string {
+  if (typeof crypto !== "undefined" && crypto.randomUUID) {
+    return crypto.randomUUID();
+  }
+  return Math.random().toString(36).slice(2) + Date.now().toString(36);
 }
 
-function makeId(): string {
-  return Math.random().toString(36).slice(2, 10);
+// --- Carga inicial + realtime ---
+
+async function refetchParticipants() {
+  if (!supabase) return;
+  const { data, error } = await supabase
+    .from("participants")
+    .select("id, name, predictions, locked, locked_at, updated_at");
+  if (error) {
+    storeError = error.message;
+    return;
+  }
+  participants = (data as ParticipantRow[]).map(rowToParticipant);
 }
 
-// --- Snapshots estables para useSyncExternalStore ---
-
-export function snapshotCurrent(): Participant | null {
-  const store = load();
-  if (!store.currentId) return null;
-  return store.participants.find((p) => p.id === store.currentId) ?? null;
+async function refetchResults() {
+  if (!supabase) return;
+  const { data, error } = await supabase
+    .from("results")
+    .select("group_matches, bracket, bracket_scores, question_grades")
+    .eq("id", 1)
+    .maybeSingle();
+  if (error) {
+    storeError = error.message;
+    return;
+  }
+  if (data) results = rowToResults(data as ResultsRow);
 }
+
+/** Carga los datos y se suscribe a cambios en vivo. Idempotente. */
+export function ensureInit() {
+  if (initStarted) return;
+  initStarted = true;
+
+  if (!supabase) {
+    storeError =
+      "Falta configurar Supabase (variables NEXT_PUBLIC_SUPABASE_*).";
+    loaded = true;
+    notify();
+    return;
+  }
+
+  void (async () => {
+    await Promise.all([refetchParticipants(), refetchResults()]);
+    loaded = true;
+    notify();
+  })();
+
+  supabase
+    .channel("porra-realtime")
+    .on(
+      "postgres_changes",
+      { event: "*", schema: "public", table: "participants" },
+      () => {
+        void refetchParticipants().then(notify);
+      },
+    )
+    .on(
+      "postgres_changes",
+      { event: "*", schema: "public", table: "results" },
+      () => {
+        void refetchResults().then(notify);
+      },
+    )
+    .subscribe();
+}
+
+// --- Snapshots síncronos para useSyncExternalStore ---
 
 export function snapshotParticipants(): Participant[] {
-  return load().participants;
+  return participants;
 }
 
 export function snapshotResults(): Results {
-  return load().results;
+  return results;
 }
 
-// --- Mutaciones ---
+export function snapshotCurrent(): Participant | null {
+  const device = getDevice();
+  if (!device) return null;
+  return participants.find((p) => p.id === device.id) ?? null;
+}
 
-/** Crea (o reusa) un participante con ese nombre y lo marca como actual. */
-export function signIn(name: string): Participant {
-  const store = { ...load() };
-  const clean = name.trim();
-  let participant = store.participants.find(
-    (p) => p.name.toLowerCase() === clean.toLowerCase(),
-  );
-  if (!participant) {
-    participant = {
-      id: makeId(),
-      name: clean,
+export function snapshotLoaded(): boolean {
+  return loaded;
+}
+
+export function snapshotError(): string | null {
+  return storeError;
+}
+
+// --- Mutaciones (optimistas) ---
+
+/** Crea un participante con ese nombre y lo asocia a este dispositivo. */
+export async function signIn(name: string): Promise<void> {
+  if (!supabase) return;
+  const secret = randomSecret();
+  const { data, error } = await supabase
+    .from("participants")
+    .insert({
+      name: name.trim(),
+      secret,
       predictions: emptyPredictions(),
-      updatedAt: Date.now(),
       locked: false,
-    };
-    store.participants = [...store.participants, participant];
+    })
+    .select("id, name, predictions, locked, locked_at, updated_at")
+    .single();
+  if (error || !data) {
+    storeError = error?.message ?? "No se pudo crear el participante.";
+    notify();
+    return;
   }
-  store.currentId = participant.id;
-  commit(store);
-  return participant;
+  const participant = rowToParticipant(data as ParticipantRow);
+  participants = [...participants, participant];
+  setDevice({ id: participant.id, secret });
+  notify();
 }
 
 export function signOut() {
-  const store = { ...load(), currentId: null };
-  commit(store);
+  setDevice(null);
+  notify();
 }
 
 export function savePredictions(predictions: Predictions) {
-  const store = load();
-  if (!store.currentId) return;
-  const participants = store.participants.map((p) =>
-    p.id === store.currentId && !p.locked
+  const device = getDevice();
+  if (!device) return;
+  participants = participants.map((p) =>
+    p.id === device.id && !p.locked
       ? { ...p, predictions, updatedAt: Date.now() }
       : p,
   );
-  commit({ ...store, participants });
+  notify();
+  void supabase
+    ?.from("participants")
+    .update({ predictions, updated_at: new Date().toISOString() })
+    .eq("id", device.id)
+    .eq("secret", device.secret)
+    .then(({ error }) => {
+      if (error) {
+        storeError = error.message;
+        notify();
+      }
+    });
 }
 
 /** Guarda la porra en firme: queda bloqueada y ya no se puede editar. */
 export function lockPorra() {
-  const store = load();
-  if (!store.currentId) return;
-  const participants = store.participants.map((p) =>
-    p.id === store.currentId
-      ? { ...p, locked: true, lockedAt: Date.now() }
-      : p,
+  const device = getDevice();
+  if (!device) return;
+  const now = Date.now();
+  participants = participants.map((p) =>
+    p.id === device.id ? { ...p, locked: true, lockedAt: now } : p,
   );
-  commit({ ...store, participants });
+  notify();
+  void supabase
+    ?.from("participants")
+    .update({ locked: true, locked_at: new Date(now).toISOString() })
+    .eq("id", device.id)
+    .eq("secret", device.secret)
+    .then(({ error }) => {
+      if (error) {
+        storeError = error.message;
+        notify();
+      }
+    });
 }
 
-export function saveResults(results: Results) {
-  commit({ ...load(), results });
+export function saveResults(next: Results) {
+  results = next;
+  notify();
+  void supabase
+    ?.from("results")
+    .update({
+      group_matches: next.groupMatches,
+      bracket: next.bracket,
+      bracket_scores: next.bracketScores,
+      question_grades: next.questionGrades,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", 1)
+    .then(({ error }) => {
+      if (error) {
+        storeError = error.message;
+        notify();
+      }
+    });
 }
 
 /** Elimina un participante (acción de administrador). */
 export function removeParticipant(id: string) {
-  const store = load();
-  commit({
-    ...store,
-    participants: store.participants.filter((p) => p.id !== id),
-    currentId: store.currentId === id ? null : store.currentId,
-  });
+  participants = participants.filter((p) => p.id !== id);
+  notify();
+  void supabase
+    ?.from("participants")
+    .delete()
+    .eq("id", id)
+    .then(({ error }) => {
+      if (error) {
+        storeError = error.message;
+        notify();
+      }
+    });
 }

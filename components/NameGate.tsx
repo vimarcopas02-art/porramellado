@@ -2,7 +2,7 @@
 
 import { useState, type ReactNode } from "react";
 import { signIn } from "@/lib/storage";
-import { useParticipant, useMounted } from "@/lib/hooks";
+import { useParticipant, useMounted, useStoreLoaded } from "@/lib/hooks";
 import { Button, Card } from "./ui";
 import { UserIcon, BallIcon } from "./icons";
 
@@ -12,10 +12,12 @@ import { UserIcon, BallIcon } from "./icons";
  */
 export function NameGate({ children }: { children: ReactNode }) {
   const mounted = useMounted();
+  const loaded = useStoreLoaded();
   const participant = useParticipant();
   const [name, setName] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
-  if (!mounted) {
+  if (!mounted || !loaded) {
     return (
       <div className="mx-auto max-w-md px-4 py-20 text-center text-ink-400">
         Cargando…
@@ -40,13 +42,16 @@ export function NameGate({ children }: { children: ReactNode }) {
         </h1>
         <p className="mt-1 text-sm text-ink-600">
           Escribe el nombre con el que quieres aparecer en la clasificación.
-          Tus predicciones se guardan en este dispositivo.
+          Este dispositivo te recordará.
         </p>
         <form
           className="mt-5"
-          onSubmit={(e) => {
+          onSubmit={async (e) => {
             e.preventDefault();
-            if (trimmed) signIn(trimmed);
+            if (!trimmed || submitting) return;
+            setSubmitting(true);
+            await signIn(trimmed);
+            setSubmitting(false);
           }}
         >
           <label
@@ -71,10 +76,10 @@ export function NameGate({ children }: { children: ReactNode }) {
           <Button
             type="submit"
             size="lg"
-            disabled={!trimmed}
+            disabled={!trimmed || submitting}
             className="mt-4 w-full"
           >
-            Entrar a mi porra
+            {submitting ? "Entrando…" : "Entrar a mi porra"}
           </Button>
         </form>
       </Card>

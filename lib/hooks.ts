@@ -8,10 +8,12 @@ import {
 } from "react";
 import {
   STORE_EVENT,
-  invalidateCache,
+  ensureInit,
   snapshotCurrent,
   snapshotParticipants,
   snapshotResults,
+  snapshotLoaded,
+  snapshotError,
   emptyPredictions,
   emptyResults,
   savePredictions,
@@ -22,16 +24,9 @@ import {
 import type { Predictions } from "./types";
 
 function subscribe(callback: () => void) {
-  const onStorage = () => {
-    invalidateCache();
-    callback();
-  };
+  ensureInit();
   window.addEventListener(STORE_EVENT, callback);
-  window.addEventListener("storage", onStorage);
-  return () => {
-    window.removeEventListener(STORE_EVENT, callback);
-    window.removeEventListener("storage", onStorage);
-  };
+  return () => window.removeEventListener(STORE_EVENT, callback);
 }
 
 const NO_PARTICIPANTS: Participant[] = [];
@@ -42,7 +37,7 @@ export function useParticipant(): Participant | null {
   return useSyncExternalStore(subscribe, snapshotCurrent, () => null);
 }
 
-/** Todos los participantes guardados. */
+/** Todos los participantes de la porra. */
 export function useParticipants(): Participant[] {
   return useSyncExternalStore(
     subscribe,
@@ -56,6 +51,16 @@ export function useResults(): Results {
   return useSyncExternalStore(subscribe, snapshotResults, () => NO_RESULTS);
 }
 
+/** true cuando la carga inicial de datos ha terminado. */
+export function useStoreLoaded(): boolean {
+  return useSyncExternalStore(subscribe, snapshotLoaded, () => false);
+}
+
+/** Mensaje de error de la capa de datos, si lo hay. */
+export function useStoreError(): string | null {
+  return useSyncExternalStore(subscribe, snapshotError, () => null);
+}
+
 /** Evita el desajuste de hidratación: false en servidor, true tras montar. */
 export function useMounted(): boolean {
   const [mounted, setMounted] = useState(false);
@@ -66,7 +71,7 @@ export function useMounted(): boolean {
 /**
  * Borrador de predicciones con autoguardado.
  * Mantiene estado local para que los inputs respondan al instante y
- * persiste en almacenamiento con un pequeño retardo (debounce).
+ * persiste con un pequeño retardo (debounce).
  */
 export function useAutosaveDraft() {
   const participant = useParticipant();
