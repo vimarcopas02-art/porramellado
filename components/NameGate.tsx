@@ -42,7 +42,7 @@ export function NameGate({ children }: { children: ReactNode }) {
         </h1>
         <p className="mt-1 text-sm text-ink-600">
           Escribe el nombre con el que quieres aparecer en la clasificación.
-          Este dispositivo te recordará.
+          Si ya existe alguien con ese nombre, te llevará a su porra.
         </p>
         <form
           className="mt-5"

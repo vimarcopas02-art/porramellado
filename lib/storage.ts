@@ -35,7 +35,7 @@ export type Results = {
   questionGrades: Record<string, Record<string, boolean>>;
 };
 
-type Device = { id: string; secret: string };
+type Device = { id: string };
 
 export function emptyPredictions(): Predictions {
   return { groupMatches: {}, bracket: {}, bracketScores: {}, questions: {} };
@@ -108,7 +108,9 @@ function getDevice(): Device | null {
   if (typeof window === "undefined") return null;
   try {
     const raw = window.localStorage.getItem(DEVICE_KEY);
-    return raw ? (JSON.parse(raw) as Device) : null;
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as { id?: string };
+    return parsed?.id ? { id: parsed.id } : null;
   } catch {
     return null;
   }
@@ -222,15 +224,32 @@ export function snapshotError(): string | null {
 
 // --- Mutaciones (optimistas) ---
 
-/** Crea un participante con ese nombre y lo asocia a este dispositivo. */
+/**
+ * Entra a la porra con ese nombre.
+ * Si ya existe alguien con ese nombre (mismo, ignorando mayúsculas/espacios),
+ * se reclama esa porra; así un mismo nombre te devuelve siempre a tu porra,
+ * aunque cambies de móvil o se pierda el almacenamiento del navegador.
+ * Si no existe, se crea un participante nuevo.
+ */
 export async function signIn(name: string): Promise<void> {
   if (!supabase) return;
-  const secret = randomSecret();
+  const clean = name.trim();
+  if (!clean) return;
+
+  const existing = participants.find(
+    (p) => p.name.trim().toLowerCase() === clean.toLowerCase(),
+  );
+  if (existing) {
+    setDevice({ id: existing.id });
+    notify();
+    return;
+  }
+
   const { data, error } = await supabase
     .from("participants")
     .insert({
-      name: name.trim(),
-      secret,
+      name: clean,
+      secret: randomSecret(),
       predictions: emptyPredictions(),
       locked: false,
     })
@@ -243,7 +262,7 @@ export async function signIn(name: string): Promise<void> {
   }
   const participant = rowToParticipant(data as ParticipantRow);
   participants = [...participants, participant];
-  setDevice({ id: participant.id, secret });
+  setDevice({ id: participant.id });
   notify();
 }
 
@@ -265,7 +284,6 @@ export function savePredictions(predictions: Predictions) {
     ?.from("participants")
     .update({ predictions, updated_at: new Date().toISOString() })
     .eq("id", device.id)
-    .eq("secret", device.secret)
     .then(({ error }) => {
       if (error) {
         storeError = error.message;
@@ -287,7 +305,6 @@ export function lockPorra() {
     ?.from("participants")
     .update({ locked: true, locked_at: new Date(now).toISOString() })
     .eq("id", device.id)
-    .eq("secret", device.secret)
     .then(({ error }) => {
       if (error) {
         storeError = error.message;
