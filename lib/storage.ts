@@ -284,6 +284,28 @@ export async function signIn(name: string): Promise<void> {
     .select("id, name, predictions, locked, locked_at, updated_at")
     .single();
   if (error || !data) {
+    // Si chocó con el índice único (23505 = unique_violation), significa que
+    // entre nuestra comprobación y el insert otro hilo creó la fila (o la
+    // tenía cacheada con otra capitalización). Recuperamos y reclamamos esa
+    // fila en vez de fallar.
+    if (error?.code === "23505") {
+      const { data: rows } = await supabase
+        .from("participants")
+        .select("id, name, predictions, locked, locked_at, updated_at")
+        .ilike("name", clean);
+      const match = (rows as ParticipantRow[] | null)?.find(
+        (r) => r.name.trim().toLowerCase() === clean.toLowerCase(),
+      );
+      if (match) {
+        const claimed = rowToParticipant(match);
+        if (!participants.some((p) => p.id === claimed.id)) {
+          participants = [...participants, claimed];
+        }
+        setDevice({ id: claimed.id });
+        notify();
+        return;
+      }
+    }
     storeError = error?.message ?? "No se pudo crear el participante.";
     notify();
     return;
