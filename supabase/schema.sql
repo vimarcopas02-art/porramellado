@@ -13,6 +13,12 @@ create table if not exists participants (
   updated_at  timestamptz not null default now()
 );
 
+-- Un nombre = una porra. Comparación case-insensitive y sin espacios sobrantes,
+-- para que "Vicente", "vicente" y "  Vicente " sean la misma persona y la BD
+-- impida crear duplicados aunque dos peticiones lleguen a la vez.
+create unique index if not exists participants_name_unique
+  on participants (lower(btrim(name)));
+
 -- Resultados reales: una sola fila (id = 1) que gestiona el administrador.
 create table if not exists results (
   id              int primary key default 1,

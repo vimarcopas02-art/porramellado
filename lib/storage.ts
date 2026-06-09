@@ -236,15 +236,43 @@ export async function signIn(name: string): Promise<void> {
   const clean = name.trim();
   if (!clean) return;
 
-  const existing = participants.find(
+  // 1) Buscamos primero en la cache (rápido).
+  let existing = participants.find(
     (p) => p.name.trim().toLowerCase() === clean.toLowerCase(),
   );
+
+  // 2) Si no aparece, preguntamos a Supabase EN VIVO. Esto cubre el caso de
+  //    que la cache aún no estuviera hidratada (red lenta, primer arranque,
+  //    otro móvil) y evita crear duplicados con el mismo nombre.
+  if (!existing) {
+    const { data: rows, error } = await supabase
+      .from("participants")
+      .select("id, name, predictions, locked, locked_at, updated_at")
+      .ilike("name", clean);
+    if (error) {
+      storeError = error.message;
+      notify();
+      return;
+    }
+    const match = (rows as ParticipantRow[] | null)?.find(
+      (r) => r.name.trim().toLowerCase() === clean.toLowerCase(),
+    );
+    if (match) {
+      existing = rowToParticipant(match);
+      // Sincronizamos la cache para que el resto de la app lo vea ya.
+      if (!participants.some((p) => p.id === existing!.id)) {
+        participants = [...participants, existing];
+      }
+    }
+  }
+
   if (existing) {
     setDevice({ id: existing.id });
     notify();
     return;
   }
 
+  // 3) Realmente no existe → creamos un participante nuevo.
   const { data, error } = await supabase
     .from("participants")
     .insert({
