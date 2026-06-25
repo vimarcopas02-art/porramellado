@@ -150,14 +150,16 @@ function matchThirds(
 /**
  * Rellena los huecos de dieciseisavos (clave `slot:D*:N`) a partir de la
  * clasificación: 1.º y 2.º directos, y los 8 mejores terceros emparejados.
- * Solo se rellenan huecos de grupos ya cerrados (con sus 6 partidos), para no
- * mostrar emparejamientos basados en el orden de bombo.
+ * Los 1.º y 2.º se rellenan grupo a grupo en cuanto cada grupo está cerrado.
+ * Los terceros solo se asignan cuando TODOS los grupos están cerrados: hasta
+ * entonces no se puede saber cuáles son los 8 mejores terceros entre los 12.
  */
 export function autoBracketSlots(scores: Scores): Record<string, string> {
   const standings = computeAllStandings(scores);
   const completeGroups = new Set(
     groups.filter((g) => groupComplete(scores, g.id)).map((g) => g.id),
   );
+  const allGroupsComplete = completeGroups.size === groups.length;
   const slots: Record<string, string> = {};
   const thirdSlots: ThirdSlot[] = [];
 
@@ -178,8 +180,9 @@ export function autoBracketSlots(scores: Scores): Record<string, string> {
     });
   }
 
+  if (!allGroupsComplete) return slots;
+
   const qualified = rankThirds(standings)
-    .filter((t) => completeGroups.has(t.groupId))
     .slice(0, thirdSlots.length)
     .map((t) => ({ groupId: t.groupId, teamId: t.row.teamId }));
 
