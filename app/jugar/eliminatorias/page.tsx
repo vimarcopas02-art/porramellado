@@ -8,7 +8,7 @@ import { BracketTieCard, type RoundKey } from "@/components/BracketTieCard";
 import { Card } from "@/components/ui";
 import { TrophyIcon } from "@/components/icons";
 import { bracket, teamName, TOURNAMENT_START } from "@/lib/data";
-import { fullBracket, winnersOnly } from "@/lib/bracket";
+import { fullBracket, persistableBracket } from "@/lib/bracket";
 import { useAutosaveDraft } from "@/lib/hooks";
 import type { ScorePrediction } from "@/lib/types";
 import { cn } from "@/lib/cn";
@@ -37,7 +37,10 @@ function Eliminatorias() {
     patch((prev) => {
       const winners = { ...prev.bracket, [`win:${tieId}`]: teamId };
       const normalized = fullBracket(prev.groupMatches, winners);
-      return { ...prev, bracket: winnersOnly(normalized) };
+      return {
+        ...prev,
+        bracket: persistableBracket(prev.groupMatches, normalized),
+      };
     });
   };
 

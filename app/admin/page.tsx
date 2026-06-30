@@ -18,7 +18,7 @@ import {
   questions,
   questionCategories,
 } from "@/lib/data";
-import { fullBracket, winnersOnly } from "@/lib/bracket";
+import { fullBracket, persistableBracket } from "@/lib/bracket";
 import { useResultsDraft, useParticipants, useMounted } from "@/lib/hooks";
 import { removeParticipant } from "@/lib/storage";
 import { computeScore } from "@/lib/scoring";
@@ -162,9 +162,10 @@ function BracketResultsTab({
     if (!teamId) return;
     patch((prev) => {
       const winners = { ...prev.bracket, [`win:${tieId}`]: teamId };
+      const full = fullBracket(prev.groupMatches, winners);
       return {
         ...prev,
-        bracket: winnersOnly(fullBracket(prev.groupMatches, winners)),
+        bracket: persistableBracket(prev.groupMatches, full),
       };
     });
   };

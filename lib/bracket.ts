@@ -104,6 +104,28 @@ export function winnersOnly(
   return out;
 }
 
+/**
+ * Lo que merece la pena persistir del cuadro: ganadores (`win:*`) más los
+ * huecos de dieciseisavos que el admin haya forzado a mano (`slot:*` que
+ * difieren del cálculo automático). Los huecos auto-calculados no se guardan
+ * para que se regeneren solos si cambian los resultados de grupos.
+ */
+export function persistableBracket(
+  groupScores: Record<string, ScorePrediction>,
+  full: Record<string, string>,
+): Record<string, string> {
+  const auto = autoBracketSlots(groupScores);
+  const out: Record<string, string> = {};
+  for (const [key, value] of Object.entries(full)) {
+    if (key.startsWith("win:")) {
+      out[key] = value;
+    } else if (key.startsWith("slot:") && auto[key] !== value) {
+      out[key] = value;
+    }
+  }
+  return out;
+}
+
 /** Equipos que el cuadro sitúa en cada ronda. */
 export function roundTeams(bracketRecord: Record<string, string>) {
   const get = (k: string) => bracketRecord[k] || "";
